@@ -1,10 +1,11 @@
 using UnityEngine;
-
+using UnityEngine.Events;
 public class PlayerController : MonoBehaviour
 {
     public GameObject pinPrefab;
     public Transform pinSpawnPoint; 
-
+    public UnityEvent OnLandEvent;
+    
     void Update()
 {
     
@@ -20,10 +21,7 @@ public class PlayerController : MonoBehaviour
         {
             shootDirection = Vector2.right;
         }
-        else if (Input.GetKey(KeyCode.DownArrow))
-        {
-            shootDirection = Vector2.down;
-        }
+        
 
         ShootPin(shootDirection);
     }
@@ -39,7 +37,5 @@ void ShootPin(Vector2 direction)
         pinMovement.StartMoving(direction); 
     }
 }
-
-
    
 }

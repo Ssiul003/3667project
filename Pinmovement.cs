@@ -1,9 +1,5 @@
-
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
 
 public class PinMovement : MonoBehaviour
 {
@@ -32,56 +28,73 @@ public class PinMovement : MonoBehaviour
         movementDirection = direction; 
         isMoving = true; 
     }
-private void OnTriggerEnter2D(Collider2D collision)
-{
-    
-    if (collision.CompareTag("Balloon") && !isSceneChanging)
+
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        isSceneChanging = true;
-        if (audioSource != null && audioSource.clip != null)
+        if (collision.CompareTag("Balloon") && !isSceneChanging)
         {
-            audioSource.Play();
-            Debug.Log("Playing sound effect");
+            isSceneChanging = true;
+
+            if (audioSource != null && audioSource.clip != null)
+            {
+                audioSource.volume = AudioListener.volume; // Align with global volume
+                audioSource.Play();
+                
+            }
+
+            // Deactivate the balloon instead of respawning it
+            collision.gameObject.SetActive(false);
+
+            // Add 1 point to the score
+            ScoreCount.instance.AddScore(1);
+
+            // Notify BalloonManager that a balloon has been "popped"
+            BalloonManager.instance.BalloonPopped();
+
+            Destroy(gameObject, audioSource.clip.length);
         }
-        BalloonMovement balloonMovement = collision.GetComponent<BalloonMovement>();
-        if (balloonMovement != null)
-        {
-            balloonMovement.Respawn(); 
-        }
 
-        ScoreCount.instance.AddScore(1);
-        Invoke("LoadNextScene", audioSource.clip.length);
-
-       
-        Destroy(gameObject, audioSource.clip.length);
-    }
-    if (collision.CompareTag("Bird"))
-    {
-        Debug.Log("Hit a bird! Restarting level.");
-        RestartLevel(); 
-    }
-
-}
-
-private void LoadNextScene()
+        if (collision.CompareTag("Bird"))
 {
-    int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
-    int nextSceneIndex = currentSceneIndex + 1;
+    // Decrease lives when the pin hits a bird
+    int currentLives = PersistentData.Instance.GetLives();
+    currentLives--;  // Decrement lives
+    PersistentData.Instance.SetLives(currentLives);
 
-    
-    if (nextSceneIndex < SceneManager.sceneCountInBuildSettings)
+    // Update the lives display
+    FindObjectOfType<LivesDisplay>().UpdateLivesDisplay();
+
+    if (currentLives <= 0)
     {
-        SceneManager.LoadScene(nextSceneIndex); 
+        GoToMenu();
     }
     else
     {
-        Debug.Log("No more scenes to load."); 
+        // Reset the score to the initial value when losing a life
+        ScoreCount.instance.ResetScoreToInitial();
+
+        // Optionally, you can reload the level to reset the game state
+        RestartLevel();
     }
 }
-private void RestartLevel()
-{
+
+}
+
+
+
+    private void RestartLevel()
+    {
+    // Optionally reset score here as well if needed before reloading
+    
     SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Reload the current scene
-}
-}
+    }
+
+    private void GoToMenu()
+    {
+    // Reset the game state (including score and lives) only when going to the main menu
+    PersistentData.Instance.ResetGame();
+    SceneManager.LoadScene(0); // Load the main menu scene (index 0)
+    }
 
 
+}

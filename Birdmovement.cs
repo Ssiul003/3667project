@@ -1,29 +1,33 @@
 using UnityEngine;
 
-public class Birdmovement : MonoBehaviour
+public class BirdMovement : MonoBehaviour
 {
-    public float speed = 5f; 
-    public float leftLimit = -8f;
-    public float rightLimit = 8f; 
-    private bool movingLeft = true; 
+    public float speed = 10.0f; // Speed of the balloon movement
+    private Vector3 direction = Vector3.left; // Initial movement direction
+
+    private float screenWidth;
+
+    void Start()
+    {
+        // Get screen width in world coordinates
+        screenWidth = Camera.main.orthographicSize * Camera.main.aspect;
+    }
 
     void Update()
     {
-        
-        transform.Translate(Vector2.left * speed * Time.deltaTime * (movingLeft ? 1 : -1));
+        // Move the bird
+        transform.position += direction * speed * Time.deltaTime;
 
-        
-        if (transform.position.x <= leftLimit || transform.position.x >= rightLimit)
+        // Check if the bird hits the edges of the screen
+        if (transform.position.x >= screenWidth || transform.position.x <= -screenWidth)
         {
-            Flip(); 
-        }
-    }
+            // Reverse direction
+            direction *= -1;
 
-    private void Flip()
-    {
-        movingLeft = !movingLeft; 
-        Vector3 theScale = transform.localScale; 
-        theScale.x *= -1; 
-        transform.localScale = theScale; 
+            // Flip the bird's image
+            Vector3 scale = transform.localScale;
+            scale.x *= -1; // Invert the X-axis
+            transform.localScale = scale;
+        }
     }
 }
